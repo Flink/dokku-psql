@@ -8,17 +8,23 @@ if [[ $1 == psql:* ]]; then
   load_ip_and_container
 fi
 
+if [ -t 0 ]; then
+  INTERACTIVE_DOCKER_EXEC="docker exec --interactive --tty"
+else
+  INTERACTIVE_DOCKER_EXEC="docker exec --interactive"
+fi
+
 case "$1" in
   psql:admin_console)
     check_container
-    docker exec -it "$PSQL_CONTAINER_NAME" env TERM=$TERM su - postgres -c psql
+    $INTERACTIVE_DOCKER_EXEC "$PSQL_CONTAINER_NAME" env TERM=$TERM su - postgres -c psql
     ;;
 
   psql:console)
     check_container; check_app; verify_app_name "$APP"; check_exists
     DATABASE=$(cat "$PSQL_ROOT/db_$APP")
     PASSWORD=$(cat "$PSQL_ROOT/pass_$APP")
-    docker exec -it "$PSQL_CONTAINER_NAME" env TERM="$TERM" PGPASSWORD="$PASSWORD" psql -h localhost -U "$DATABASE" "$DATABASE"
+    $INTERACTIVE_DOCKER_EXEC "$PSQL_CONTAINER_NAME" env TERM="$TERM" PGPASSWORD="$PASSWORD" psql -h localhost -U "$DATABASE" "$DATABASE"
     ;;
 
   psql:url)
@@ -54,7 +60,7 @@ case "$1" in
 
   psql:list)
     check_container
-    docker exec -it "$PSQL_CONTAINER_NAME" env TERM=$TERM su - postgres -c "psql --command \"\\l\""
+    $INTERACTIVE_DOCKER_EXEC "$PSQL_CONTAINER_NAME" env TERM=$TERM su - postgres -c "psql --command \"\\l\""
     ;;
 
   psql:start)
