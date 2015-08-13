@@ -34,7 +34,7 @@ db_url() {
 }
 
 database_name() {
-  echo "$1" | tr .- _
+  echo "db_$1" | tr .- _
 }
 
 env_for() {
